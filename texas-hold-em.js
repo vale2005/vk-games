@@ -62,7 +62,7 @@ exports.init = function(nPlayers) {
     return [data, create_messages(data, activePlayerIndex), activePlayerIndex];
 }
 
-function create_messages(data, activePlayerIndex){
+function create_messages(data, activePlayerIndex, move){
     let messages = [];
 
     let visibleCardsMessage = ""
@@ -81,7 +81,11 @@ function create_messages(data, activePlayerIndex){
         }
         messages[i] += "The total pot is: " + data.pot + "\n";
         messages[i] += getMessage(data.players[i]);
+        if(move){
+            messages[i] += "Player did: " + 
+        }
     } 
+
     return messages;
 }
 
@@ -95,7 +99,7 @@ function create_messages(data, activePlayerIndex){
  * returns: messages        - check init() function
  * returns: nextPlayerIndex - check init() function
  */
-exports.transition = function(data, playerIndex, move) {
+exports.transition = function(data, playerIndex, move, params) {
     if(move == "fold") data.players[playerIndex].inRound = false;
     else if(move == "call"){
         const diff = data.round_max - data.players[playerIndex].inPot;
@@ -103,8 +107,8 @@ exports.transition = function(data, playerIndex, move) {
         data.players[playerIndex].inPot += diff;
         data.pot += diff; 
     }
-    else if(move.substring(0,5) == "raise"){
-        let raise = parseInt(move.substring(5));
+    else if(move == "raise"){
+        let raise = parseInt(params["raisenumber"]);
         data.round_max  = raise
         const diff = raise - data.players[playerIndex].inPot;
         data.players[playerIndex].total -= diff;
@@ -118,10 +122,10 @@ exports.transition = function(data, playerIndex, move) {
         nextPlayerIndex = data.players.findIndex(p => p.role == "bb");
         data.gameState++;
         let newData = dealCards(data);
-        return [true, newData, create_messages(newData, nextPlayerIndex), nextPlayerIndex];
+        return [true, newData, create_messages(newData, nextPlayerIndex, playerIndex, move), nextPlayerIndex];
     }
     else{
-        return [true, data, create_messages(data, nextPlayerIndex), nextPlayerIndex];
+        return [true, data, create_messages(data, nextPlayerIndex, move), nextPlayerIndex];
     }
 
 }
