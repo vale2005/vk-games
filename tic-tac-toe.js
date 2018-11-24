@@ -7,7 +7,9 @@ const ROWS = ["1", "2", "3"];
 const FIELD_LENGTH = COLUMNS.length;
 
 exports.init = function(nPlayers) {
-    return [initBoard(), initMessages(), 1];
+    let data = initBoard();
+    let printedState = printState(data);
+    return [data, [printedState, printedState], 1];
 }
 
 exports.transition = function(data, playerIndex, move) {
@@ -24,7 +26,7 @@ exports.transition = function(data, playerIndex, move) {
     } 
     else data[indexes.r][indexes.c] = playerToString(playerIndex);
 
-    const printedState = module.exports.printState(data);
+    const printedState = printState(data);
 
     const nextPlayerIndex = getNextPlayerIndex(playerIndex);
 
@@ -32,34 +34,40 @@ exports.transition = function(data, playerIndex, move) {
 }
 
 exports.hasEnded = function(data) {
+    let msg;
     //one diagonal direction
     if(data[0][0] == data[1][1] && data[0][0] == data[2][2]){
-        if(data[0][0] == "O") return ["Player1 won!"];
-        else if(data[0][0] == "X") return ["Player2 won!"];
+        if(data[0][0] == "O") msg = "Player1 won!";
+        else if(data[0][0] == "X") msg = "Player2 won!";
+        return [msg, msg];
     }
 
     //other diagonal direction
     if(data[0][2] == data[1][1] && data[0][2] == data[2][0]){
-        if(data[0][2] == "O") return ["Player1 won!"];
-        else if(data[0][2] == "X") return ["Player2 won!"];
+        if(data[0][2] == "O") msg = "Player1 won!";
+        else if(data[0][2] == "X") msg = "Player2 won!";
+        return [msg, msg];
     }
 
     //columns
     for(let i=0; i<FIELD_LENGTH; ++i){
         if(data[0][i] == data[1][i] && data[0][i] == data[2][i]){
-            if(data[0][i] == "O") return ["Player1 won!"];
-            else if(data[0][i] == "X") return ["Player2 won!"];
+            if(data[0][i] == "O") msg = "Player1 won!";
+            else if(data[0][i] == "X") msg = "Player2 won!";
+            return[msg, msg];
         }
     }
 
     //rows
     for(let i=0; i<FIELD_LENGTH; ++i){
         if(data[i].every(field => field == "O")){
-            return ["Player1 won!"];
+            msg = "Player1 won!";
+            return [msg, msg];
         }
 
         if(data[i].every(field => field == "X")){
-            return ["Player2 won!"];
+            msg = "Player2 won!";
+            return [msg, msg];
         }
     }
 
@@ -70,7 +78,8 @@ exports.hasEnded = function(data) {
         }
     }
 
-    return ["Draw, no empty fields left"];
+    msg = "Draw, no empty fields left";
+    return [msg, msg]
 }
 
 function initBoard(){
@@ -84,9 +93,6 @@ function initBoard(){
     return board;
 }
 
-function initMessages(){
-    return "Player 1 up first, have a good game!"
-}
 
 function getIndexes(col, row){
     return { c: COL_TO_IND[col], r: parseInt(row)-1}
@@ -100,7 +106,7 @@ function playerToString(playerIndex){
     return playerIndex == 1 ? "O" : "X";
 }
 
-module.exports.printState = function(data){
+function printState(data){
     let msg = "The current state of the board is:\n";
     
     msg += "  " + COLUMNS.join(" ") + "\n";
