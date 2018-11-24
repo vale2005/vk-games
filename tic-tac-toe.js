@@ -1,10 +1,10 @@
-const ROWS = ["a", "b", "c"];
+const COLUMNS = ["a", "b", "c"];
 
-const ROW_TO_IND = {"a": 0, "b": 1, "c": 2};
+const COL_TO_IND = {"a": 0, "b": 1, "c": 2};
 
-const COLUMNS = ["1", "2", "3"];
+const ROWS = ["1", "2", "3"];
 
-const FIELD_LENGTH = ROWS.length;
+const FIELD_LENGTH = COLUMNS.length;
 
 exports.init = function(nPlayers) {
     let data = initBoard();
@@ -16,8 +16,8 @@ exports.transition = function(data, playerIndex, move) {
     let isValid = true;
 
     move = move.toLowerCase();
-    const row = move.charAt(0);
-    const col = move.charAt(1);
+    const col = move.charAt(0);
+    const row = move.charAt(1);
     
     const indexes = getIndexes(col, row); 
 
@@ -102,7 +102,7 @@ function initBoard(){
 
 
 function getIndexes(col, row){
-    return { r: ROW_TO_IND[row], c: parseInt(col)-1}
+    return { c: COL_TO_IND[col], r: parseInt(row)-1}
 }
 
 function getNextPlayerIndex(currPlayerIndex){
@@ -116,11 +116,11 @@ function playerToString(playerIndex){
 function printState(data){
     let msg = "The current state of the board is:\n";
     
-    msg += "  " + ROWS.join(" ") + "\n";
+    msg += "  " + COLUMNS.join(" ") + "\n";
 
     let rowStrings = [];
     for(let i=0; i<FIELD_LENGTH; ++i){
-        rowStrings.push(COLUMNS[i] + " " + data[i].join(" "));
+        rowStrings.push(ROWS[i] + " " + data[i].join(" "));
     }
     
     msg += rowStrings.join("\n") + "\n";
