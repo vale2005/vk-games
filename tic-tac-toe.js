@@ -9,7 +9,7 @@ const FIELD_LENGTH = COLUMNS.length;
 exports.init = function(nPlayers) {
     let data = initBoard();
     let printedState = printState(data);
-    return [data, [printedState, printedState], 1];
+    return [data, [printedState, printedState], 0];
 }
 
 exports.transition = function(data, playerIndex, move) {
@@ -99,11 +99,11 @@ function getIndexes(col, row){
 }
 
 function getNextPlayerIndex(currPlayerIndex){
-    return currPlayerIndex % 2 + 1;
+    return (currPlayerIndex + 1) % 2;
 }
 
 function playerToString(playerIndex){
-    return playerIndex == 1 ? "O" : "X";
+    return playerIndex == 1 ? "X" : "O";
 }
 
 function printState(data){
