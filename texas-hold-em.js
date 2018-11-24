@@ -82,7 +82,7 @@ function create_messages(data, activePlayerIndex, move){
         messages[i] += "The total pot is: " + data.pot + "\n";
         messages[i] += getMessage(data.players[i]);
         if(move){
-            messages[i] += "Player did: " + 
+            messages[i] += "Player did: " + move;
         }
     } 
 
