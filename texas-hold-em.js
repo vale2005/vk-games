@@ -109,6 +109,7 @@ exports.transition = function(data, playerIndex, move, params) {
     }
     else if(move == "raise"){
         let raise = parseInt(params["raisenumber"]);
+        move += " by " + raise;
         data.round_max  = raise
         const diff = raise - data.players[playerIndex].inPot;
         data.players[playerIndex].total -= diff;
