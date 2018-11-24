@@ -37,24 +37,39 @@ exports.hasEnded = function(data) {
     let msg;
     //one diagonal direction
     if(data[0][0] == data[1][1] && data[0][0] == data[2][2]){
-        if(data[0][0] == "O") msg = "Player1 won!";
-        else if(data[0][0] == "X") msg = "Player2 won!";
-        return [msg, msg];
+        if(data[0][0] == "O"){
+            msg = "Player1 won!";
+            return [msg, msg];
+        }
+        else if(data[0][0] == "X"){
+            msg = "Player2 won!";
+            return [msg, msg];
+        } 
     }
 
     //other diagonal direction
     if(data[0][2] == data[1][1] && data[0][2] == data[2][0]){
-        if(data[0][2] == "O") msg = "Player1 won!";
-        else if(data[0][2] == "X") msg = "Player2 won!";
-        return [msg, msg];
+        if(data[0][2] == "O"){
+            msg = "Player1 won!";
+            return [msg, msg];
+        }
+        else if(data[0][2] == "X"){
+            msg = "Player2 won!";
+            return [msg, msg];
+        }
     }
 
     //columns
     for(let i=0; i<FIELD_LENGTH; ++i){
         if(data[0][i] == data[1][i] && data[0][i] == data[2][i]){
-            if(data[0][i] == "O") msg = "Player1 won!";
-            else if(data[0][i] == "X") msg = "Player2 won!";
-            return[msg, msg];
+            if(data[0][i] == "O"){
+                msg = "Player1 won!";
+                return [msg, msg];
+            }
+            else if(data[0][i] == "X"){
+                msg = "Player2 won!";
+                return [msg, msg];
+            }
         }
     }
 
