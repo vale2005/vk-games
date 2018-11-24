@@ -16,22 +16,22 @@ class Player{
         this.hand = [];
         this.inRound = true;
     }
-
-    getMessage(){
-        const handMsg = "Your hand: " + this.hand[0].value + " of " + this.hand[0].suit 
-        + " and " + this.hand[1].value + " of " + this.hand[1].suit + "\n\n";
-
-        const potMsg = "Your bet this round so far: " + this.inPot + "\n" +
-        "Remaining coins: " + this.total + "\n";
-
-        let roleMsg = "";
-        if(this.role == "bb") roleMsg = "You are the big blind\n";
-        else if(this.role == "sb") roleMsg = "You are the small blind\n";
-        else if(this.role == "dealer") roleMsg = "You are the dealer\n";
-
-        return handMsg + potMsg + roleMsg; 
-    }
 }
+
+function getMessage(player){
+    const handMsg = "Your hand: " + player.hand[0].value + " of " + player.hand[0].suit 
+    + " and " + player.hand[1].value + " of " + player.hand[1].suit + "\n\n";
+
+    const potMsg = "Your bet this round so far: " + player.inPot + "\n" +
+    "Remaining coins: " + player.total + "\n";
+
+    let roleMsg = "";
+    if(player.role == "bb") roleMsg = "You are the big blind\n";
+    else if(player.role == "sb") roleMsg = "You are the small blind\n";
+    else if(player.role == "dealer") roleMsg = "You are the dealer\n";
+
+    return handMsg + potMsg + roleMsg; 
+};
 
 /**
  * param: nPlayers - number of players that joined the game
@@ -80,7 +80,7 @@ function create_messages(data, activePlayerIndex){
             messages[i] += "It's your move!\n";
         }
         messages[i] += "The total pot is: " + data.pot + "\n";
-        messages[i] += data.players[i].getMessage();
+        messages[i] += getMessage(data.players[i]);
     } 
     return messages;
 }
@@ -96,7 +96,6 @@ function create_messages(data, activePlayerIndex){
  * returns: nextPlayerIndex - check init() function
  */
 exports.transition = function(data, playerIndex, move) {
-
     if(move == "fold") data.players[playerIndex].inRound = false;
     else if(move == "call"){
         const diff = data.round_max - data.players[playerIndex].inPot;
