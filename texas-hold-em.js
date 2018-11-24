@@ -7,6 +7,32 @@ const SUITS = ["clubs", "diamonds", "hearts", "spades"];
 const CARD_SIZES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"];
 
 let deck = [];
+
+class Player{
+    constructor(){
+        this.role = ""
+        this.total = 0;
+        this.inPot = 0;
+        this.hand = [];
+        this.inRound = true;
+    }
+
+    getMessage(){
+        const handMsg = "Your hand: " + this.hand[0].value + " of " + this.hand[0].suit 
+        + " and " + this.hand[1].value + " of " + this.hand[1].suit + "\n\n";
+
+        const potMsg = "Your bet this round so far: " + this.inPot + "\n" +
+        "Remaining coins: " + this.total + "\n";
+
+        let roleMsg = "";
+        if(this.role == "bb") roleMsg = "You are the big blind\n";
+        else if(this.role == "sb") roleMsg = "You are the small blind\n";
+        else if(this.role == "dealer") roleMsg = "You are the dealer\n";
+
+        return handMsg + potMsg + roleMsg; 
+    }
+}
+
 /**
  * param: nPlayers - number of players that joined the game
  * returns: data        - anything you want
@@ -15,30 +41,49 @@ let deck = [];
  */
 exports.init = function(nPlayers) {
     generateDeck();
+    let activePlayerIndex = 0;
 
+    let players = initPlayers(nPlayers);
+    initRoles(players);
+    initTotals(players); 
+    let pot = initPots(players);
+    dealHands(players);
+
+    
     let data = {
-        //totals: initTotals(nPlayers),
-        roles: initRoles(nPlayers),
-        hands: dealHands(nPlayers),
-        //individual_pots:
-        //total_pot:
+        players: players,
+        round_max: BIG_BLIND,
+        roundEnd: 0,
+        pot: pot,
+        visibleCards: [],
+        gameState: 0
     }
-    return [data, create_messages(data, nPlayers), 0];
+
+    return [data, create_messages(data, activePlayerIndex), activePlayerIndex];
 }
 
-function create_messages(data, nPlayers){
+function create_messages(data, activePlayerIndex){
     let messages = [];
-    for(let i=0; i<nPlayers; ++i){
-        messages[i] = "";
+
+    let visibleCardsMessage = ""
+    if(data.visibleCards.length != 0){
+        visibleCardsMessage += "The visisble cards are:\n";
+
+        for(let i=0; i<data.visibleCards.length; ++i){
+            visibleCardsMessage += data.visibleCards[i].value + " of " + data.visibleCards[i].suit + "\n";
+        }
     }
 
-    for(let i=0; i<nPlayers; ++i){
-        messages[i] += printHand(data.hands[i]); 
-    }
+    for(let i=0; i<data.players.length; ++i){
+        messages[i] = visibleCardsMessage;
+        if(i == activePlayerIndex){
+            messages[i] += "It's your move!\n";
+        }
+        messages[i] += "The total pot is: " + data.pot + "\n";
+        messages[i] += data.players[i].getMessage();
+    } 
     return messages;
 }
-
-
 
 /**
  * param: data              - you know what this is
@@ -51,13 +96,35 @@ function create_messages(data, nPlayers){
  * returns: nextPlayerIndex - check init() function
  */
 exports.transition = function(data, playerIndex, move) {
-    var isValid = /* TODO: check if move is valid for given data */false;
 
-    if (!isValid) {
-        return [isValid, reason];
+    if(move == "fold") data.players[playerIndex].inRound = false;
+    else if(move == "call"){
+        const diff = data.round_max - data.players[playerIndex].inPot;
+        data.players[playerIndex].total -= diff;
+        data.players[playerIndex].inPot += diff;
+        data.pot += diff; 
+    }
+    else if(move.substring(0,5) == "raise"){
+        let raise = parseInt(move.substring(5));
+        data.round_max  = raise
+        const diff = raise - data.players[playerIndex].inPot;
+        data.players[playerIndex].total -= diff;
+        data.players[playerIndex].inPot += diff; 
+        data.pot += diff; 
+        data.roundEnd = playerIndex;
     }
 
-    return [isValid, nextData, messages, nextPlayerIndex];
+    let nextPlayerIndex = getNextActivePlayerIndex(playerIndex, data); 
+    if(nextPlayerIndex === false){
+        nextPlayerIndex = data.players.findIndex(p => p.role == "bb");
+        data.gameState++;
+        let newData = dealCards(data);
+        return [true, newData, create_messages(newData, nextPlayerIndex), nextPlayerIndex];
+    }
+    else{
+        return [true, data, create_messages(data, nextPlayerIndex), nextPlayerIndex];
+    }
+
 }
 
 /**
@@ -74,27 +141,64 @@ exports.hasEnded = function(data) {
     return [messages];
 }
 
-//coin methods
-function initTotals(nPlayers){
-    let totals = [];
+//general game maangement
+function initPlayers(nPlayers){
+    let players = []
     for(let i=0; i<nPlayers; ++i){
-        totals[i] = COINS_AT_START; 
+        players.push(new Player());
     }
-    return totals;
+    return players;
+}
+
+function getNextActivePlayerIndex(playerIndex, data){
+    let nextPlayerIndex = getNextPlayerIndex(playerIndex, data.players.length);
+    if(nextPlayerIndex == data.roundEnd){
+        return false;
+    }
+
+    while(!data.players[nextPlayerIndex].inRound){
+        if(nextPlayerIndex == data.roundEnd){
+            return false;
+        }
+        nextPlayerIndex = getNextPlayerIndex(nextPlayerIndex, data.players.length); 
+    }
+    return nextPlayerIndex;
+}
+
+function getNextPlayerIndex(activePlayerIndex, nPlayers){
+    return (activePlayerIndex + 1) % nPlayers;
 }
 
 //roles
-function initRoles(nPlayers){
-    let roles = [];
-    for(let i=0; i<nPlayers; ++i){
-        roles[i] = "";
+function initRoles(players){
+    const nPlayers = players.length;
+
+    players[nPlayers-3].role = "dealer";
+    players[nPlayers-2].role = "sb"    //before last
+    players[nPlayers-1].role = "bb"    //last element
+}
+
+//coin methods
+function initTotals(players){
+    for(let i=0; i<players.length; ++i){
+        players[i].total = COINS_AT_START; 
     }
+}
 
-    roles[nPlayers-3] = "dealer";
-    roles[nPlayers-2] = "sb"    //before last
-    roles[nPlayers-1] = "bb"    //last element
+function initPots(players){
+    let pot = 0;
+    
+    const bbInd = players.findIndex(p => p.role == "bb");
+    players[bbInd].total -= BIG_BLIND; 
+    players[bbInd].inPot += BIG_BLIND;
+    pot += BIG_BLIND;
 
-    return roles;
+    const sbInd = players.findIndex(p => p.role == "sb");
+    players[sbInd].total -= BIG_BLIND/2;
+    players[sbInd].inPot += BIG_BLIND/2 
+    pot += BIG_BLIND/2;
+
+    return pot;
 }
 
 //deck methods
@@ -120,18 +224,20 @@ function shuffleDeck() {
     }
 }
 
-function dealHands(nPlayers){
-    let hands = [];
-    for(let i=0; i<nPlayers; ++i){
-        hands.push([deck.pop(), deck.pop()]);
-        console.log(deck.length);
+function dealHands(players){
+    for(let i=0; i<players.length; ++i){
+        players[i].hand = [deck.pop(), deck.pop()];
     }
-    return hands;
 }
 
-function printHand(hand){
-    return "You have the " + hand[0].value + " of " + hand[0].suit 
-    + " and the " + hand[1].value + " of " + hand[1].suit + 
-    " in your hand.";
+function dealCards(data){
+    if(data.gameState == 1){
+        data.visibleCards.push(deck.pop());
+        data.visibleCards.push(deck.pop());
+        data.visibleCards.push(deck.pop());
+    }
+    else if(data.gameState == 2 || data.gameState == 3){
+        data.visibleCards.push(deck.pop());
+    }
+    return data;
 }
-
