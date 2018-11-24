@@ -99,6 +99,8 @@ exports.hasEnded = function(data) {
             return false;
         }
     }
+
+    return ["Draw, no empty fields left"];
 }
 
 //create empty board
