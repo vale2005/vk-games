@@ -1,0 +1,1 @@
+This is part of our solution for the 'Hack human computer interaction' challange at Junction 2018. The project is a game development platform for chat based games, and these are example games that can be developed by our API. We have won the 3rd prize of the challange.
